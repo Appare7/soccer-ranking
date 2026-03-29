@@ -273,7 +273,27 @@ header {
 
 @media (max-width: 700px) {
   .ranking-dual {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ranking-column-header {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .ranking-item {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .rank-number {
+    font-size: 13px;
+    min-width: 26px;
+    height: 26px;
+  }
+  .rank-name {
+    font-size: 12px;
+  }
+  .rank-time {
+    font-size: 15px;
   }
 }
 
