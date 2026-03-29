@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>慶應中等部サッカー部 走力ランキング</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -13,12 +16,15 @@
   <div id="login-screen" class="screen active">
     <div class="login-container">
       <div class="login-logo">
-        <div class="logo-icon">⚽</div>
+        <div class="logo-icon"><i class="lucide-dribbble"></i></div>
         <h1>慶應中等部サッカー部</h1>
-        <h2>走力ランキング</h2>
+        <p class="login-subtitle">SPRINT RANKING</p>
       </div>
       <div class="login-form">
-        <input type="text" id="password-input" placeholder="パスワードを入力" autocomplete="off">
+        <div class="input-wrapper">
+          <i class="lucide-lock input-icon"></i>
+          <input type="text" id="password-input" placeholder="パスワードを入力" autocomplete="off">
+        </div>
         <button id="login-btn" class="btn btn-primary">ログイン</button>
         <p id="login-error" class="error-text"></p>
       </div>
@@ -29,7 +35,7 @@
   <div id="dashboard-screen" class="screen">
     <header>
       <div class="header-content">
-        <h1>⚽ 走力ランキング</h1>
+        <h1>SPRINT RANKING</h1>
         <div class="header-right">
           <span id="role-badge" class="badge"></span>
           <button id="logout-btn" class="btn btn-small btn-outline">ログアウト</button>
@@ -39,16 +45,19 @@
     <main class="container">
       <div id="menu-buttons" class="menu-grid">
         <button class="menu-card" onclick="showRanking()">
-          <div class="menu-icon">🏆</div>
-          <div class="menu-label">結果を見る</div>
+          <div class="menu-icon"><i class="lucide-trophy"></i></div>
+          <div class="menu-label">Results</div>
+          <div class="menu-desc">ランキング・記録を確認</div>
         </button>
         <button id="menu-time-input" class="menu-card admin-only" onclick="showTimeInput()">
-          <div class="menu-icon">⏱️</div>
-          <div class="menu-label">タイム入力</div>
+          <div class="menu-icon"><i class="lucide-timer"></i></div>
+          <div class="menu-label">Record</div>
+          <div class="menu-desc">新しい記録を追加</div>
         </button>
         <button id="menu-time-edit" class="menu-card admin-only" onclick="showTimeEdit()">
-          <div class="menu-icon">✏️</div>
-          <div class="menu-label">タイム修正</div>
+          <div class="menu-icon"><i class="lucide-pencil-line"></i></div>
+          <div class="menu-label">Edit</div>
+          <div class="menu-desc">過去の記録を編集・削除</div>
         </button>
       </div>
     </main>
@@ -58,8 +67,8 @@
   <div id="ranking-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
-        <h1>🏆 ランキング</h1>
+        <button class="btn btn-back" onclick="goBack('dashboard')"><i class="lucide-arrow-left"></i> 戻る</button>
+        <h1>RANKING</h1>
         <div></div>
       </div>
     </header>
@@ -86,7 +95,7 @@
   <div id="player-detail-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('ranking')">← 戻る</button>
+        <button class="btn btn-back" onclick="goBack('ranking')"><i class="lucide-arrow-left"></i> 戻る</button>
         <h1 id="player-detail-name"></h1>
         <div></div>
       </div>
@@ -107,9 +116,9 @@
   <div id="time-input-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
-        <h1>⏱️ タイム入力</h1>
-        <button class="btn btn-accent btn-small" onclick="showAddPlayerModal()">+ 選手追加</button>
+        <button class="btn btn-back" onclick="goBack('dashboard')"><i class="lucide-arrow-left"></i> 戻る</button>
+        <h1>RECORD</h1>
+        <button class="btn btn-accent btn-small" onclick="showAddPlayerModal()"><i class="lucide-user-plus"></i> 追加</button>
       </div>
     </header>
     <main class="container">
@@ -121,7 +130,7 @@
   <div id="time-input-form-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('time-input')">← 戻る</button>
+        <button class="btn btn-back" onclick="goBack('time-input')"><i class="lucide-arrow-left"></i> 戻る</button>
         <h1 id="time-input-player-name"></h1>
         <div></div>
       </div>
@@ -152,8 +161,8 @@
   <div id="time-edit-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
-        <h1>✏️ タイム修正</h1>
+        <button class="btn btn-back" onclick="goBack('dashboard')"><i class="lucide-arrow-left"></i> 戻る</button>
+        <h1>EDIT</h1>
         <div></div>
       </div>
     </header>
@@ -166,7 +175,7 @@
   <div id="time-edit-detail-screen" class="screen">
     <header>
       <div class="header-content">
-        <button class="btn btn-back" onclick="goBack('time-edit')">← 戻る</button>
+        <button class="btn btn-back" onclick="goBack('time-edit')"><i class="lucide-arrow-left"></i> 戻る</button>
         <h1 id="time-edit-player-name"></h1>
         <div></div>
       </div>

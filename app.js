@@ -181,7 +181,7 @@ window.showPlayerDetail = async function (playerId, playerName) {
   currentDetailPlayerName = playerName;
   currentDetailType = "20m";
 
-  document.getElementById("player-detail-name").textContent = `📊 ${playerName}`;
+  document.getElementById("player-detail-name").textContent = playerName;
   showScreen("player-detail-screen");
 
   document.querySelectorAll("#player-detail-screen .tab").forEach((t) => t.classList.remove("active"));
@@ -331,7 +331,7 @@ async function loadPlayerListForInput() {
       const data = docSnap.data();
       html += `
         <div class="player-item" onclick="openTimeInputForm('${docSnap.id}', '${data.name}')">
-          <span class="player-icon">🏃</span>
+          <i class="lucide-user player-icon"></i>
           <span>${data.name}</span>
         </div>
       `;
@@ -345,7 +345,7 @@ async function loadPlayerListForInput() {
 
 window.openTimeInputForm = function (playerId, playerName) {
   currentDetailPlayerId = playerId;
-  document.getElementById("time-input-player-name").textContent = `⏱️ ${playerName}`;
+  document.getElementById("time-input-player-name").textContent = playerName;
   document.getElementById("input-time").value = "";
   document.getElementById("input-type").value = "20m";
 
@@ -416,7 +416,7 @@ async function loadPlayerListForEdit() {
       const data = docSnap.data();
       html += `
         <div class="player-item" onclick="openTimeEditDetail('${docSnap.id}', '${data.name}')">
-          <span class="player-icon">✏️</span>
+          <i class="lucide-user player-icon"></i>
           <span>${data.name}</span>
         </div>
       `;
@@ -432,7 +432,7 @@ window.openTimeEditDetail = async function (playerId, playerName) {
   currentEditPlayerId = playerId;
   currentEditPlayerName = playerName;
   currentEditType = "20m";
-  document.getElementById("time-edit-player-name").textContent = `✏️ ${playerName}`;
+  document.getElementById("time-edit-player-name").textContent = playerName;
   showScreen("time-edit-detail-screen");
 
   document.querySelectorAll("#time-edit-detail-screen .tab").forEach((t) => t.classList.remove("active"));

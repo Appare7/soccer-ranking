@@ -26,7 +26,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--navy-dark);
   color: var(--white);
   min-height: 100vh;
@@ -90,31 +90,30 @@ body {
 }
 
 .logo-icon {
-  font-size: 56px;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-  animation: float 3s ease-in-out infinite;
+  margin-bottom: 24px;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.logo-icon i {
+  font-size: 48px;
+  color: var(--yellow);
+  opacity: 0.9;
 }
 
 .login-logo h1 {
   color: var(--white);
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
 }
 
-.login-logo h2 {
+.login-subtitle {
   color: var(--yellow);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 5px;
   text-transform: uppercase;
+  opacity: 0.8;
 }
 
 .login-form {
@@ -123,6 +122,26 @@ body {
   padding: 32px 28px;
   border: 1px solid var(--border);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.input-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--gray);
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  padding-left: 44px !important;
+  margin-bottom: 0 !important;
 }
 
 .login-form input {
@@ -323,16 +342,29 @@ header {
 }
 
 .menu-icon {
-  font-size: 40px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   position: relative;
+}
+
+.menu-icon i {
+  font-size: 32px;
+  color: var(--yellow);
+  opacity: 0.85;
 }
 
 .menu-label {
   font-size: 16px;
   font-weight: 600;
   position: relative;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.menu-desc {
+  font-size: 12px;
+  color: var(--gray);
+  font-weight: 400;
+  position: relative;
 }
 
 /* ===== ボタン ===== */
@@ -396,6 +428,12 @@ header {
   padding: 6px 10px;
   font-size: 13px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-back i {
+  font-size: 16px;
 }
 .btn-back:hover {
   color: var(--yellow);
@@ -540,8 +578,8 @@ header {
 }
 
 .player-item .player-icon {
-  font-size: 20px;
-  opacity: 0.7;
+  font-size: 18px;
+  color: var(--gray);
 }
 
 /* ===== グラフ ===== */
