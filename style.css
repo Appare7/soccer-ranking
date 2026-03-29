@@ -33,11 +33,11 @@ body {
 
 /* ===== 画面管理 ===== */
 .screen {
-  display: none;
+  display: none !important;
   min-height: 100vh;
 }
 .screen.active {
-  display: block;
+  display: block !important;
 }
 
 /* ===== ログイン画面 ===== */
