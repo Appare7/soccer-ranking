@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>慶應中等部サッカー部 走力ランキング</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ログイン画面 -->
+  <div id="login-screen" class="screen active">
+    <div class="login-container">
+      <div class="login-logo">
+        <div class="logo-icon">⚽</div>
+        <h1>慶應中等部サッカー部</h1>
+        <h2>走力ランキング</h2>
+      </div>
+      <div class="login-form">
+        <input type="password" id="password-input" placeholder="パスワードを入力" autocomplete="off">
+        <button id="login-btn" class="btn btn-primary">ログイン</button>
+        <p id="login-error" class="error-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインダッシュボード -->
+  <div id="dashboard-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <h1>⚽ 走力ランキング</h1>
+        <div class="header-right">
+          <span id="role-badge" class="badge"></span>
+          <button id="logout-btn" class="btn btn-small btn-outline">ログアウト</button>
+        </div>
+      </div>
+    </header>
+    <main class="container">
+      <div id="menu-buttons" class="menu-grid">
+        <button class="menu-card" onclick="showRanking()">
+          <div class="menu-icon">🏆</div>
+          <div class="menu-label">結果を見る</div>
+        </button>
+        <button id="menu-time-input" class="menu-card admin-only" onclick="showTimeInput()">
+          <div class="menu-icon">⏱️</div>
+          <div class="menu-label">タイム入力</div>
+        </button>
+        <button id="menu-time-edit" class="menu-card admin-only" onclick="showTimeEdit()">
+          <div class="menu-icon">✏️</div>
+          <div class="menu-label">タイム修正</div>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- ランキング画面 -->
+  <div id="ranking-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
+        <h1>🏆 ランキング</h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchRankingTab('20m', this)">20m走</button>
+        <button class="tab" onclick="switchRankingTab('20m_obstacle', this)">20m障害走</button>
+      </div>
+      <div id="ranking-list" class="ranking-list"></div>
+    </main>
+  </div>
+
+  <!-- 選手詳細画面（グラフ） -->
+  <div id="player-detail-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('ranking')">← 戻る</button>
+        <h1 id="player-detail-name"></h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchDetailTab('20m', this)">20m走</button>
+        <button class="tab" onclick="switchDetailTab('20m_obstacle', this)">20m障害走</button>
+      </div>
+      <div class="chart-container">
+        <canvas id="player-chart"></canvas>
+      </div>
+      <div id="player-records-list" class="records-list"></div>
+    </main>
+  </div>
+
+  <!-- タイム入力画面（選手一覧） -->
+  <div id="time-input-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
+        <h1>⏱️ タイム入力</h1>
+        <button class="btn btn-accent btn-small" onclick="showAddPlayerModal()">+ 選手追加</button>
+      </div>
+    </header>
+    <main class="container">
+      <div id="player-list-input" class="player-list"></div>
+    </main>
+  </div>
+
+  <!-- タイム入力フォーム画面 -->
+  <div id="time-input-form-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('time-input')">← 戻る</button>
+        <h1 id="time-input-player-name"></h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="form-card">
+        <div class="form-group">
+          <label>種目</label>
+          <select id="input-type">
+            <option value="20m">20m走</option>
+            <option value="20m_obstacle">20m障害走</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>タイム（秒）</label>
+          <input type="number" id="input-time" step="0.01" min="0" placeholder="例: 3.45">
+        </div>
+        <div class="form-group">
+          <label>日時</label>
+          <input type="datetime-local" id="input-date">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="submitTime()">記録する</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- タイム修正画面（選手一覧） -->
+  <div id="time-edit-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('dashboard')">← 戻る</button>
+        <h1>✏️ タイム修正</h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div id="player-list-edit" class="player-list"></div>
+    </main>
+  </div>
+
+  <!-- タイム修正詳細画面 -->
+  <div id="time-edit-detail-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('time-edit')">← 戻る</button>
+        <h1 id="time-edit-player-name"></h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchEditTab('20m', this)">20m走</button>
+        <button class="tab" onclick="switchEditTab('20m_obstacle', this)">20m障害走</button>
+      </div>
+      <div id="edit-records-list" class="records-list"></div>
+    </main>
+  </div>
+
+  <!-- 選手追加モーダル -->
+  <div id="add-player-modal" class="modal">
+    <div class="modal-content">
+      <h3>選手を追加</h3>
+      <div class="form-group">
+        <label>選手名</label>
+        <input type="text" id="new-player-name" placeholder="名前を入力">
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="addPlayer()">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- タイム修正モーダル -->
+  <div id="edit-record-modal" class="modal">
+    <div class="modal-content">
+      <h3>タイムを修正</h3>
+      <div class="form-group">
+        <label>タイム（秒）</label>
+        <input type="number" id="edit-time" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>日時</label>
+        <input type="datetime-local" id="edit-date">
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-outline" onclick="closeEditModal()">キャンセル</button>
+        <button class="btn btn-danger" onclick="deleteRecord()">削除</button>
+        <button class="btn btn-primary" onclick="updateRecord()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast通知 -->
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
