@@ -63,12 +63,17 @@
         <div></div>
       </div>
     </header>
-    <main class="container">
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchRankingTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchRankingTab('30m', this)">30m走</button>
+    <main class="container container-wide">
+      <div class="ranking-dual">
+        <div class="ranking-column">
+          <div class="ranking-column-header">20m走</div>
+          <div id="ranking-list-20m" class="ranking-list"></div>
+        </div>
+        <div class="ranking-column">
+          <div class="ranking-column-header">30m走</div>
+          <div id="ranking-list-30m" class="ranking-list"></div>
+        </div>
       </div>
-      <div id="ranking-list" class="ranking-list"></div>
     </main>
   </div>
 

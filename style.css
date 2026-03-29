@@ -193,6 +193,36 @@ header {
   gap: 10px;
 }
 
+/* ===== ランキング左右並び ===== */
+.container-wide {
+  max-width: 1100px;
+}
+
+.ranking-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.ranking-column-header {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--yellow);
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--navy-surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 700px) {
+  .ranking-dual {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ===== バッジ ===== */
 .badge {
   padding: 4px 10px;

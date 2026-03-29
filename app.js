@@ -107,21 +107,11 @@ window.goBack = function (screenId) {
 // ===== ランキング表示 =====
 window.showRanking = async function () {
   showScreen("ranking-screen");
-  currentRankingType = "20m";
-  document.querySelectorAll("#ranking-screen .tab").forEach((t) => t.classList.remove("active"));
-  document.querySelector("#ranking-screen .tab").classList.add("active");
-  await loadRanking("20m");
-};
-
-window.switchRankingTab = async function (type, tabEl) {
-  currentRankingType = type;
-  document.querySelectorAll("#ranking-screen .tab").forEach((t) => t.classList.remove("active"));
-  tabEl.classList.add("active");
-  await loadRanking(type);
+  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
 };
 
 async function loadRanking(type) {
-  const listEl = document.getElementById("ranking-list");
+  const listEl = document.getElementById(`ranking-list-${type}`);
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
