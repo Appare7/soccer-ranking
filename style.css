@@ -214,33 +214,37 @@ header {
 
 /* ===== 学年フィルター ===== */
 .filter-bar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  background: var(--navy);
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid var(--border);
 }
 
 .filter-btn {
-  padding: 7px 18px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--navy-surface);
+  padding: 6px 20px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   color: var(--gray);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .filter-btn:hover {
-  border-color: var(--border-hover);
   color: var(--white);
 }
 
 .filter-btn.active {
   background: var(--yellow);
   color: var(--navy-dark);
-  border-color: var(--yellow);
+  box-shadow: 0 2px 8px rgba(212, 165, 23, 0.2);
 }
 
 /* ===== ランキング左右並び ===== */
