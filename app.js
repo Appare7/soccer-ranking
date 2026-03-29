@@ -114,13 +114,23 @@ window.showRanking = async function () {
   await Promise.all([loadRanking("20m"), loadRanking("30m")]);
 };
 
-// フィルターボタンのイベントリスナー
-document.querySelectorAll(".filter-btn").forEach((btn) => {
-  btn.addEventListener("click", async function () {
-    currentGradeFilter = this.dataset.grade;
-    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-    this.classList.add("active");
-    await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+// フィルター処理
+async function applyGradeFilter(grade, btnEl) {
+  currentGradeFilter = grade;
+  document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+  btnEl.classList.add("active");
+  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+}
+
+// onclick用（後方互換）
+window.filterGrade = function (grade, btnEl) {
+  applyGradeFilter(grade, btnEl);
+};
+
+// data-grade用（addEventListener）
+document.querySelectorAll(".filter-btn[data-grade]").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    applyGradeFilter(this.dataset.grade, this);
   });
 });
 
