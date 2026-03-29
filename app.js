@@ -114,12 +114,15 @@ window.showRanking = async function () {
   await Promise.all([loadRanking("20m"), loadRanking("30m")]);
 };
 
-window.filterGrade = async function (grade, btnEl) {
-  currentGradeFilter = grade;
-  document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-  btnEl.classList.add("active");
-  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
-};
+// フィルターボタンのイベントリスナー
+document.querySelectorAll(".filter-btn").forEach((btn) => {
+  btn.addEventListener("click", async function () {
+    currentGradeFilter = this.dataset.grade;
+    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+    this.classList.add("active");
+    await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+  });
+});
 
 async function loadRanking(type) {
   const listEl = document.getElementById(`ranking-list-${type}`);
