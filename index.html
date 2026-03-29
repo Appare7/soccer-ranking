@@ -66,7 +66,7 @@
     <main class="container">
       <div class="tab-bar">
         <button class="tab active" onclick="switchRankingTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchRankingTab('20m_obstacle', this)">20m障害走</button>
+        <button class="tab" onclick="switchRankingTab('30m', this)">30m走</button>
       </div>
       <div id="ranking-list" class="ranking-list"></div>
     </main>
@@ -84,7 +84,7 @@
     <main class="container">
       <div class="tab-bar">
         <button class="tab active" onclick="switchDetailTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchDetailTab('20m_obstacle', this)">20m障害走</button>
+        <button class="tab" onclick="switchDetailTab('30m', this)">30m走</button>
       </div>
       <div class="chart-container">
         <canvas id="player-chart"></canvas>
@@ -122,7 +122,7 @@
           <label>種目</label>
           <select id="input-type">
             <option value="20m">20m走</option>
-            <option value="20m_obstacle">20m障害走</option>
+            <option value="30m">30m走</option>
           </select>
         </div>
         <div class="form-group">
@@ -164,7 +164,7 @@
     <main class="container">
       <div class="tab-bar">
         <button class="tab active" onclick="switchEditTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchEditTab('20m_obstacle', this)">20m障害走</button>
+        <button class="tab" onclick="switchEditTab('30m', this)">30m走</button>
       </div>
       <div id="edit-records-list" class="records-list"></div>
     </main>
