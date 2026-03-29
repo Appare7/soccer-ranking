@@ -30,6 +30,7 @@ const db = getFirestore(app);
 
 // ===== グローバル変数 =====
 let currentRole = null; // "player" or "admin"
+let currentGradeFilter = "all";
 let currentRankingType = "20m";
 let currentDetailPlayerId = null;
 let currentDetailPlayerName = null;
@@ -107,6 +108,16 @@ window.goBack = function (screenId) {
 // ===== ランキング表示 =====
 window.showRanking = async function () {
   showScreen("ranking-screen");
+  currentGradeFilter = "all";
+  document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelector(".filter-btn").classList.add("active");
+  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+};
+
+window.filterGrade = async function (grade, btnEl) {
+  currentGradeFilter = grade;
+  document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+  btnEl.classList.add("active");
   await Promise.all([loadRanking("20m"), loadRanking("30m")]);
 };
 
@@ -133,11 +144,15 @@ async function loadRanking(type) {
       }
     });
 
-    // ソート
-    const sorted = Object.values(bestTimes).sort((a, b) => a.time - b.time);
+    // フィルター＆ソート
+    let sorted = Object.values(bestTimes);
+    if (currentGradeFilter !== "all") {
+      sorted = sorted.filter((item) => item.playerName.includes(currentGradeFilter));
+    }
+    sorted.sort((a, b) => a.time - b.time);
 
     if (sorted.length === 0) {
-      listEl.innerHTML = '<div class="empty-message">まだ記録がありません</div>';
+      listEl.innerHTML = '<div class="empty-message">該当する記録がありません</div>';
       return;
     }
 
