@@ -45,6 +45,7 @@ let playerChart = null;
 function showScreen(screenId) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
   document.getElementById(screenId).classList.add("active");
+  window.scrollTo(0, 0);
 }
 
 // ===== ログイン =====
@@ -57,11 +58,11 @@ function handleLogin() {
   const password = document.getElementById("password-input").value;
   const errorEl = document.getElementById("login-error");
 
-  if (password === "tensei") {
+  if (password === "Tensei") {
     currentRole = "player";
     errorEl.textContent = "";
     setupDashboard();
-  } else if (password === "appare") {
+  } else if (password === "Appare") {
     currentRole = "admin";
     errorEl.textContent = "";
     setupDashboard();
