@@ -421,16 +421,21 @@ async function loadPlayerListForEdit() {
     }
 
     let html = "";
+    const players = [];
     snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      html += `
-        <div class="player-item" onclick="openTimeEditDetail('${docSnap.id}', '${data.name}')">
-          <i class="lucide-user player-icon"></i>
-          <span>${data.name}</span>
-        </div>
-      `;
+      players.push({ id: docSnap.id, name: docSnap.data().name });
     });
-    listEl.innerHTML = html;
+    listEl.innerHTML = players.map((p) => `
+      <div class="player-item" data-pid="${p.id}" data-pname="${p.name.replace(/"/g, '&quot;')}">
+        <i class="lucide-user player-icon"></i>
+        <span>${p.name}</span>
+      </div>
+    `).join("");
+    listEl.querySelectorAll(".player-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        openTimeEditDetail(el.dataset.pid, el.dataset.pname);
+      });
+    });
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<div class="empty-message">エラーが発生しました</div>';
@@ -672,8 +677,9 @@ window.filterRanking = function () {
 function nameSize(name) {
   const len = name.length;
   if (len <= 2) return "";
-  if (len === 3) return "style=\"font-size:0.85em\"";
-  return "style=\"font-size:0.7em\"";
+  if (len === 3) return "style=\"font-size:0.9em\"";
+  if (len === 4) return "style=\"font-size:0.78em\"";
+  return "style=\"font-size:0.68em\"";
 }
 
 function renderFilteredRanking(type, searchText) {

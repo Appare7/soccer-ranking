@@ -342,45 +342,35 @@ header {
     padding: 6px;
   }
   .ranking-item {
-    padding: 4px 4px;
-    gap: 2px;
+    padding: 3px 4px;
+    gap: 3px;
     flex-wrap: nowrap;
+    border-radius: 5px;
   }
   .rank-number {
-    font-size: 7px;
-    min-width: 12px;
-    width: 12px;
-    height: 12px;
+    font-size: 8px;
+    min-width: 14px;
+    width: 14px;
+    height: 14px;
     border-radius: 3px;
     flex-shrink: 0;
-    background: none;
-    color: var(--gray);
     padding: 0;
-  }
-  .rank-1 .rank-number,
-  .rank-2 .rank-number,
-  .rank-3 .rank-number {
-    background: none;
-    box-shadow: none;
   }
   .rank-info {
     flex: 1;
     min-width: 0;
     display: flex;
     align-items: center;
+    overflow: hidden;
   }
   .rank-name {
-    font-size: 7px;
+    font-size: 9px;
     white-space: nowrap;
   }
   .rank-time {
-    font-size: 7px;
+    font-size: 9px;
     white-space: nowrap;
     flex-shrink: 0;
-  }
-  .rank-info {
-    min-width: 0;
-    overflow: hidden;
   }
   .filter-bar {
     margin-bottom: 10px;
@@ -605,16 +595,16 @@ header {
 .ranking-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .ranking-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   background: var(--navy-surface);
-  border-radius: 10px;
-  padding: 14px 18px;
+  border-radius: 7px;
+  padding: 6px 10px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid var(--border);
@@ -626,14 +616,14 @@ header {
 }
 
 .rank-number {
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 700;
-  min-width: 32px;
-  height: 32px;
+  min-width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--navy);
   color: var(--gray);
   font-variant-numeric: tabular-nums;
@@ -642,8 +632,8 @@ header {
 .rank-1 .rank-number {
   background: linear-gradient(135deg, #b8860b, #daa520);
   color: #fff;
-  font-size: 16px;
-  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+  font-size: 11px;
+  box-shadow: 0 1px 4px rgba(218, 165, 32, 0.3);
 }
 .rank-2 .rank-number {
   background: linear-gradient(135deg, #808080, #a8a8a8);
@@ -663,13 +653,13 @@ header {
 }
 
 .rank-name {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--white);
 }
 
 .rank-time {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--yellow);
   font-variant-numeric: tabular-nums;

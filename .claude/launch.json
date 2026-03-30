@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/taguchiappare/keio-soccer-ranking", "-l", "3000", "--cors"],
+      "port": 3000
+    }
+  ]
+}
