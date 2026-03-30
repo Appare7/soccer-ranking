@@ -335,20 +335,36 @@ header {
     padding: 6px;
   }
   .ranking-item {
-    padding: 5px 4px;
-    gap: 3px;
+    padding: 4px 4px;
+    gap: 2px;
     flex-wrap: nowrap;
   }
   .rank-number {
-    font-size: 8px;
-    min-width: 16px;
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+    font-size: 7px;
+    min-width: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
     flex-shrink: 0;
+    background: none;
+    color: var(--gray);
+    padding: 0;
+  }
+  .rank-1 .rank-number,
+  .rank-2 .rank-number,
+  .rank-3 .rank-number {
+    background: none;
+    box-shadow: none;
+  }
+  .rank-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
   }
   .rank-name {
     font-size: 7px;
+    white-space: nowrap;
   }
   .rank-time {
     font-size: 7px;
