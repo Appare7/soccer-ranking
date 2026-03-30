@@ -681,7 +681,7 @@ function renderFilteredRanking(type, searchText) {
     <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('${item.playerId}', '${item.playerName}')">
       <div class="rank-number">${i + 1}</div>
       <div class="rank-info"><div class="rank-name">${item.playerName}</div></div>
-      <div class="rank-time">${item.time.toFixed(2)}</div>
+      <div class="rank-time">${item.time.toFixed(2)}秒</div>
     </div>`).join("");
 }
 
