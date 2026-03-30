@@ -350,9 +350,8 @@ header {
   }
   .rank-name {
     font-size: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: keep-all;
   }
   .rank-time {
     font-size: 12px;
