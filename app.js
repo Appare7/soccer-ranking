@@ -669,6 +669,13 @@ window.filterRanking = function () {
   renderFilteredRanking("30m", searchText);
 };
 
+function nameSize(name) {
+  const len = name.length;
+  if (len <= 2) return "";
+  if (len === 3) return "style=\"font-size:0.85em\"";
+  return "style=\"font-size:0.7em\"";
+}
+
 function renderFilteredRanking(type, searchText) {
   const listEl = document.getElementById(`ranking-list-${type}`);
   let filtered = cachedRankingData[type].filter((item) => {
@@ -682,7 +689,7 @@ function renderFilteredRanking(type, searchText) {
   listEl.innerHTML = filtered.map((item, i) => `
     <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('${item.playerId}', '${item.playerName}')">
       <div class="rank-number">${i + 1}</div>
-      <div class="rank-info"><div class="rank-name">${item.playerName}</div></div>
+      <div class="rank-info"><div class="rank-name" ${nameSize(item.playerName)}>${item.playerName}</div></div>
       <div class="rank-time">${item.time.toFixed(2)}s</div>
     </div>`).join("");
 }
