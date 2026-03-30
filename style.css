@@ -31,6 +31,11 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+}
+
+*, *::before, *::after {
+  max-width: 100vw;
 }
 
 body {
@@ -189,13 +194,15 @@ body {
 header {
   background: var(--navy);
   color: var(--white);
-  padding: 14px 20px;
+  padding: 14px 16px;
   position: sticky;
   top: 0;
   z-index: 100;
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  width: 100%;
+  overflow: hidden;
 }
 
 .header-content {
