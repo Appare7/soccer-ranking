@@ -19,10 +19,17 @@
 }
 
 /* ===== リセット ===== */
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -305,46 +312,68 @@ header {
 }
 
 @media (max-width: 700px) {
+  .container-wide {
+    max-width: 100%;
+    padding: 12px 8px;
+    overflow-x: hidden;
+  }
   .ranking-dual {
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
+    width: 100%;
+    overflow: hidden;
+  }
+  .ranking-column {
+    min-width: 0;
+    overflow: hidden;
   }
   .ranking-column-header {
     font-size: 11px;
     padding: 6px;
   }
   .ranking-item {
-    padding: 8px 8px;
-    gap: 6px;
+    padding: 6px 6px;
+    gap: 4px;
     flex-wrap: nowrap;
+    overflow: hidden;
   }
   .rank-number {
-    font-size: 11px;
-    min-width: 22px;
-    height: 22px;
+    font-size: 10px;
+    min-width: 20px;
+    width: 20px;
+    height: 20px;
     border-radius: 5px;
     flex-shrink: 0;
   }
   .rank-name {
-    font-size: 11px;
+    font-size: 10px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .rank-time {
-    font-size: 13px;
+    font-size: 12px;
     white-space: nowrap;
     flex-shrink: 0;
   }
   .rank-info {
     min-width: 0;
+    overflow: hidden;
   }
   .filter-bar {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .filter-btn {
-    padding: 5px 14px;
-    font-size: 11px;
+    padding: 5px 12px;
+    font-size: 10px;
+  }
+  .search-bar input {
+    font-size: 13px;
+    padding: 8px 12px 8px 36px;
+  }
+  .search-bar .search-icon {
+    font-size: 13px;
+    left: 12px;
   }
 }
 
