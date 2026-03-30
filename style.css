@@ -335,26 +335,23 @@ header {
     padding: 6px;
   }
   .ranking-item {
-    padding: 6px 6px;
-    gap: 4px;
+    padding: 5px 4px;
+    gap: 3px;
     flex-wrap: nowrap;
-    overflow: hidden;
   }
   .rank-number {
-    font-size: 10px;
-    min-width: 20px;
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
+    font-size: 8px;
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
     flex-shrink: 0;
   }
   .rank-name {
-    font-size: 10px;
-    white-space: normal;
-    word-break: keep-all;
+    font-size: 8px;
   }
   .rank-time {
-    font-size: 12px;
+    font-size: 9px;
     white-space: nowrap;
     flex-shrink: 0;
   }
