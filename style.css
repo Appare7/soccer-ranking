@@ -212,6 +212,39 @@ header {
   gap: 10px;
 }
 
+/* ===== 検索バー ===== */
+.search-bar {
+  position: relative;
+  margin-bottom: 14px;
+}
+.search-bar .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: var(--gray);
+  pointer-events: none;
+}
+.search-bar input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--navy-surface);
+  color: var(--white);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-bar input::placeholder {
+  color: var(--gray);
+}
+.search-bar input:focus {
+  border-color: var(--yellow-dark);
+  box-shadow: 0 0 0 2px var(--yellow-glow);
+}
+
 /* ===== 学年フィルター ===== */
 .filter-bar {
   display: inline-flex;

@@ -73,6 +73,10 @@
       </div>
     </header>
     <main class="container container-wide">
+      <div class="search-bar">
+        <i class="lucide-search search-icon"></i>
+        <input type="text" id="ranking-search" placeholder="Search player..." oninput="filterRanking()">
+      </div>
       <div class="filter-bar">
         <button class="filter-btn active" data-grade="all">全員</button>
         <button class="filter-btn" data-grade="3年">3年</button>
@@ -122,6 +126,10 @@
       </div>
     </header>
     <main class="container">
+      <div class="search-bar">
+        <i class="lucide-search search-icon"></i>
+        <input type="text" id="batch-search" placeholder="Search player..." oninput="filterBatchInput()">
+      </div>
       <div class="batch-controls">
         <div class="batch-row">
           <div class="form-group compact">
@@ -158,6 +166,10 @@
       </div>
     </header>
     <main class="container">
+      <div class="search-bar">
+        <i class="lucide-search search-icon"></i>
+        <input type="text" id="edit-search" placeholder="Search player..." oninput="filterEditList()">
+      </div>
       <div id="player-list-edit" class="player-list"></div>
     </main>
   </div>

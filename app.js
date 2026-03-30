@@ -119,7 +119,14 @@ async function applyGradeFilter(grade, btnEl) {
   currentGradeFilter = grade;
   document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
   btnEl.classList.add("active");
-  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+  // キャッシュがあればフィルターだけ再適用、なければデータ取得
+  if (cachedRankingData["20m"].length > 0 || cachedRankingData["30m"].length > 0) {
+    const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
+    renderFilteredRanking("20m", searchText);
+    renderFilteredRanking("30m", searchText);
+  } else {
+    await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+  }
 }
 
 // onclick用（後方互換）
@@ -158,31 +165,14 @@ async function loadRanking(type) {
       }
     });
 
-    // フィルター＆ソート（gradeフィールドで判定）
+    // ソートしてキャッシュ
     let sorted = Object.values(bestTimes);
-    if (currentGradeFilter !== "all") {
-      sorted = sorted.filter((item) => item.grade === currentGradeFilter);
-    }
     sorted.sort((a, b) => a.time - b.time);
+    cachedRankingData[type] = sorted;
 
-    if (sorted.length === 0) {
-      listEl.innerHTML = '<div class="empty-message">該当する記録がありません</div>';
-      return;
-    }
-
-    listEl.innerHTML = sorted
-      .map(
-        (item, i) => `
-      <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('${item.playerId}', '${item.playerName}')">
-        <div class="rank-number">${i + 1}</div>
-        <div class="rank-info">
-          <div class="rank-name">${item.playerName}</div>
-        </div>
-        <div class="rank-time">${item.time.toFixed(2)}秒</div>
-      </div>
-    `
-      )
-      .join("");
+    // フィルター適用して描画
+    const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
+    renderFilteredRanking(type, searchText);
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<div class="empty-message">エラーが発生しました</div>';
@@ -586,6 +576,131 @@ window.addPlayer = async function () {
     console.error(err);
     showToast("エラーが発生しました");
   }
+};
+
+// ===== 検索（ローマ字・ひらがな・漢字対応） =====
+const NAME_READINGS = {
+  "寺沢":"てらさわ","笹川":"ささがわ","山田":"やまだ","鳥居":"とりい","近衛":"このえ",
+  "森":"もり","野尻":"のじり","綿貫":"わたぬき","沢登":"さわのぼり","加藤":"かとう",
+  "牧野":"まきの","高橋":"たかはし","猪上":"いのうえ","藤間":"ふじま","斉藤":"さいとう",
+  "ヘインズ":"へいんず","門平":"かどひら","谷澤":"たにざわ","木村":"きむら","藤林":"ふじばやし",
+  "古田":"ふるた","白澤":"しらさわ","菅原":"すがわら","寺谷":"てらたに","西田":"にしだ",
+  "山岸":"やまぎし","丸山":"まるやま","加納":"かのう","堀":"ほり","吉弘":"よしひろ",
+  "宮部":"みやべ","岩貞":"いわさだ","中山":"なかやま","金井":"かない","入江":"いりえ",
+  "江幡":"えばた","中尾":"なかお","山口":"やまぐち","河合":"かわい","川戸":"かわと",
+  "佐久間":"さくま","有村":"ありむら","藤城":"ふじしろ","木山":"きやま","川島":"かわしま"
+};
+
+// ローマ字→ひらがな変換
+function romajiToHiragana(str) {
+  const map = {
+    sha:"しゃ",shi:"し",shu:"しゅ",sho:"しょ",chi:"ち",tsu:"つ",
+    cha:"ちゃ",chu:"ちゅ",cho:"ちょ",
+    kya:"きゃ",kyu:"きゅ",kyo:"きょ",nya:"にゃ",nyu:"にゅ",nyo:"にょ",
+    hya:"ひゃ",hyu:"ひゅ",hyo:"ひょ",mya:"みゃ",myu:"みゅ",myo:"みょ",
+    rya:"りゃ",ryu:"りゅ",ryo:"りょ",
+    gya:"ぎゃ",gyu:"ぎゅ",gyo:"ぎょ",
+    ja:"じゃ",ju:"じゅ",jo:"じょ",
+    bya:"びゃ",byu:"びゅ",byo:"びょ",
+    pya:"ぴゃ",pyu:"ぴゅ",pyo:"ぴょ",
+    ka:"か",ki:"き",ku:"く",ke:"け",ko:"こ",
+    sa:"さ",si:"し",su:"す",se:"せ",so:"そ",
+    ta:"た",ti:"ち",tu:"つ",te:"て",to:"と",
+    na:"な",ni:"に",nu:"ぬ",ne:"ね",no:"の",
+    ha:"は",hi:"ひ",hu:"ふ",fu:"ふ",he:"へ",ho:"ほ",
+    ma:"ま",mi:"み",mu:"む",me:"め",mo:"も",
+    ya:"や",yu:"ゆ",yo:"よ",
+    ra:"ら",ri:"り",ru:"る",re:"れ",ro:"ろ",
+    wa:"わ",wi:"ゐ",we:"ゑ",wo:"を",
+    ga:"が",gi:"ぎ",gu:"ぐ",ge:"げ",go:"ご",
+    za:"ざ",zi:"じ",zu:"ず",ze:"ぜ",zo:"ぞ",
+    da:"だ",di:"ぢ",du:"づ",de:"で",do:"ど",
+    ba:"ば",bi:"び",bu:"ぶ",be:"べ",bo:"ぼ",
+    pa:"ぱ",pi:"ぴ",pu:"ぷ",pe:"ぺ",po:"ぽ",
+    nn:"ん",n:"ん",
+    a:"あ",i:"い",u:"う",e:"え",o:"お"
+  };
+  let result = "";
+  let s = str.toLowerCase();
+  let idx = 0;
+  while (idx < s.length) {
+    // try 3-char, 2-char, 1-char
+    let matched = false;
+    for (let len = 3; len >= 1; len--) {
+      const chunk = s.substring(idx, idx + len);
+      if (map[chunk]) {
+        result += map[chunk];
+        idx += len;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      result += s[idx];
+      idx++;
+    }
+  }
+  return result;
+}
+
+function matchesSearch(name, searchText) {
+  if (!searchText) return true;
+  const lower = searchText.toLowerCase();
+  // 漢字・カタカナそのまま
+  if (name.includes(searchText)) return true;
+  // ひらがな読み
+  const reading = NAME_READINGS[name] || "";
+  if (reading.includes(lower)) return true;
+  if (reading.includes(searchText)) return true;
+  // ローマ字→ひらがな変換して照合
+  const hiragana = romajiToHiragana(lower);
+  if (reading.includes(hiragana)) return true;
+  return false;
+}
+
+// ランキング検索フィルタ
+let cachedRankingData = { "20m": [], "30m": [] };
+
+window.filterRanking = function () {
+  const searchText = document.getElementById("ranking-search").value.trim();
+  renderFilteredRanking("20m", searchText);
+  renderFilteredRanking("30m", searchText);
+};
+
+function renderFilteredRanking(type, searchText) {
+  const listEl = document.getElementById(`ranking-list-${type}`);
+  let filtered = cachedRankingData[type].filter((item) => {
+    if (currentGradeFilter !== "all" && item.grade !== currentGradeFilter) return false;
+    return matchesSearch(item.playerName, searchText);
+  });
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty-message">該当なし</div>';
+    return;
+  }
+  listEl.innerHTML = filtered.map((item, i) => `
+    <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('${item.playerId}', '${item.playerName}')">
+      <div class="rank-number">${i + 1}</div>
+      <div class="rank-info"><div class="rank-name">${item.playerName}</div></div>
+      <div class="rank-time">${item.time.toFixed(2)}秒</div>
+    </div>`).join("");
+}
+
+// 一括入力検索フィルタ
+window.filterBatchInput = function () {
+  const searchText = document.getElementById("batch-search").value.trim();
+  document.querySelectorAll("#batch-input-list .batch-row-item").forEach((row) => {
+    const name = row.querySelector(".player-name").textContent;
+    row.style.display = matchesSearch(name, searchText) ? "" : "none";
+  });
+};
+
+// 修正画面検索フィルタ
+window.filterEditList = function () {
+  const searchText = document.getElementById("edit-search").value.trim();
+  document.querySelectorAll("#player-list-edit .player-item").forEach((row) => {
+    const name = row.querySelector("span:last-child").textContent;
+    row.style.display = matchesSearch(name, searchText) ? "" : "none";
+  });
 };
 
 // ===== ユーティリティ =====
