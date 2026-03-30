@@ -274,26 +274,44 @@ header {
 @media (max-width: 700px) {
   .ranking-dual {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .ranking-column-header {
-    font-size: 12px;
-    padding: 8px;
-  }
-  .ranking-item {
-    padding: 10px 12px;
     gap: 8px;
   }
+  .ranking-column-header {
+    font-size: 11px;
+    padding: 6px;
+  }
+  .ranking-item {
+    padding: 8px 8px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
   .rank-number {
-    font-size: 13px;
-    min-width: 26px;
-    height: 26px;
+    font-size: 11px;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    flex-shrink: 0;
   }
   .rank-name {
-    font-size: 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .rank-time {
-    font-size: 15px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .rank-info {
+    min-width: 0;
+  }
+  .filter-bar {
+    margin-bottom: 12px;
+  }
+  .filter-btn {
+    padding: 5px 14px;
+    font-size: 11px;
   }
 }
 
@@ -775,6 +793,92 @@ header {
   color: var(--gray);
   padding: 48px 20px;
   font-size: 14px;
+}
+
+/* ===== 一括入力テーブル ===== */
+.batch-controls {
+  margin-bottom: 16px;
+}
+.batch-row {
+  display: flex;
+  gap: 12px;
+}
+.batch-row .form-group.compact {
+  flex: 1;
+  margin-bottom: 0;
+}
+.batch-row .form-group.compact label {
+  margin-bottom: 4px;
+}
+.batch-table {
+  background: var(--navy-surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.batch-table-header {
+  display: flex;
+  padding: 10px 14px;
+  background: var(--navy);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.batch-col-name {
+  flex: 1;
+}
+.batch-col-time {
+  width: 100px;
+  text-align: center;
+}
+.batch-table-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.batch-row-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.batch-row-item:last-child {
+  border-bottom: none;
+}
+.batch-row-item .player-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+}
+.batch-row-item .player-grade {
+  font-size: 11px;
+  color: var(--gray);
+  margin-right: 8px;
+}
+.batch-row-item input {
+  width: 100px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--navy-dark);
+  color: var(--yellow);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s;
+}
+.batch-row-item input:focus {
+  border-color: var(--yellow-dark);
+  box-shadow: 0 0 0 2px var(--yellow-glow);
+}
+.batch-row-item input.filled {
+  background: rgba(212, 165, 23, 0.08);
+  border-color: var(--yellow-dark);
 }
 
 /* ===== スクロールバー ===== */

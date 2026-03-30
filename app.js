@@ -152,15 +152,16 @@ async function loadRanking(type) {
         bestTimes[pid] = {
           playerId: pid,
           playerName: data.playerName,
+          grade: data.grade || "",
           time: data.time,
         };
       }
     });
 
-    // フィルター＆ソート
+    // フィルター＆ソート（gradeフィールドで判定）
     let sorted = Object.values(bestTimes);
     if (currentGradeFilter !== "all") {
-      sorted = sorted.filter((item) => item.playerName.includes(currentGradeFilter));
+      sorted = sorted.filter((item) => item.grade === currentGradeFilter);
     }
     sorted.sort((a, b) => a.time - b.time);
 
@@ -320,14 +321,20 @@ function renderChart(labels, data) {
   });
 }
 
-// ===== タイム入力 =====
+// ===== タイム一括入力 =====
+let batchPlayers = []; // [{id, name, grade}]
+
 window.showTimeInput = async function () {
   showScreen("time-input-screen");
-  await loadPlayerListForInput();
+  // Set today's date
+  const now = new Date();
+  const dateStr = now.toISOString().split("T")[0];
+  document.getElementById("batch-date").value = dateStr;
+  await loadBatchInputList();
 };
 
-async function loadPlayerListForInput() {
-  const listEl = document.getElementById("player-list-input");
+async function loadBatchInputList() {
+  const listEl = document.getElementById("batch-input-list");
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
@@ -335,17 +342,22 @@ async function loadPlayerListForInput() {
     const snapshot = await getDocs(query(playersRef, orderBy("name")));
 
     if (snapshot.empty) {
-      listEl.innerHTML = '<div class="empty-message">選手が登録されていません。右上の「+ 選手追加」から追加してください</div>';
+      listEl.innerHTML = '<div class="empty-message">選手が登録されていません</div>';
       return;
     }
 
+    batchPlayers = [];
     let html = "";
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
+      batchPlayers.push({ id: docSnap.id, name: data.name, grade: data.grade || "" });
       html += `
-        <div class="player-item" onclick="openTimeInputForm('${docSnap.id}', '${data.name}')">
-          <i class="lucide-user player-icon"></i>
-          <span>${data.name}</span>
+        <div class="batch-row-item">
+          <span class="player-grade">${data.grade || ""}</span>
+          <span class="player-name">${data.name}</span>
+          <input type="number" step="0.01" min="0" placeholder="--"
+                 data-player-id="${docSnap.id}" data-player-name="${data.name}" data-grade="${data.grade || ""}"
+                 oninput="this.classList.toggle('filled', this.value !== '')">
         </div>
       `;
     });
@@ -356,49 +368,42 @@ async function loadPlayerListForInput() {
   }
 }
 
-window.openTimeInputForm = function (playerId, playerName) {
-  currentDetailPlayerId = playerId;
-  document.getElementById("time-input-player-name").textContent = playerName;
-  document.getElementById("input-time").value = "";
-  document.getElementById("input-type").value = "20m";
+window.submitBatchTimes = async function () {
+  const type = document.getElementById("batch-type").value;
+  const dateVal = document.getElementById("batch-date").value;
 
-  // 現在日時をセット
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  document.getElementById("input-date").value = local.toISOString().slice(0, 16);
-
-  showScreen("time-input-form-screen");
-
-  // 選手名を保存
-  window._currentInputPlayerName = playerName;
-};
-
-window.submitTime = async function () {
-  const type = document.getElementById("input-type").value;
-  const timeVal = parseFloat(document.getElementById("input-time").value);
-  const dateVal = document.getElementById("input-date").value;
-
-  if (isNaN(timeVal) || timeVal <= 0) {
-    showToast("正しいタイムを入力してください");
+  if (!dateVal) {
+    showToast("日付を入力してください");
     return;
   }
 
-  if (!dateVal) {
-    showToast("日時を入力してください");
+  const inputs = document.querySelectorAll("#batch-input-list input[data-player-id]");
+  const records = [];
+  inputs.forEach((inp) => {
+    const val = parseFloat(inp.value);
+    if (!isNaN(val) && val > 0) {
+      records.push({
+        playerId: inp.dataset.playerId,
+        playerName: inp.dataset.playerName,
+        grade: inp.dataset.grade,
+        type: type,
+        time: val,
+        date: Timestamp.fromDate(new Date(dateVal + "T10:00:00")),
+      });
+    }
+  });
+
+  if (records.length === 0) {
+    showToast("タイムが入力されていません");
     return;
   }
 
   try {
-    await addDoc(collection(db, "records"), {
-      playerId: currentDetailPlayerId,
-      playerName: window._currentInputPlayerName,
-      type: type,
-      time: timeVal,
-      date: Timestamp.fromDate(new Date(dateVal)),
-    });
-
-    showToast("記録を保存しました！");
-    goBack("time-input");
+    const promises = records.map((r) => addDoc(collection(db, "records"), r));
+    await Promise.all(promises);
+    showToast(`${records.length}件の記録を保存しました！`);
+    // Clear inputs
+    inputs.forEach((inp) => { inp.value = ""; inp.classList.remove("filled"); });
   } catch (err) {
     console.error(err);
     showToast("エラーが発生しました");
@@ -576,7 +581,7 @@ window.addPlayer = async function () {
     await addDoc(collection(db, "players"), { name: name });
     closeModal();
     showToast(`${name} を追加しました！`);
-    await loadPlayerListForInput();
+    await loadBatchInputList();
   } catch (err) {
     console.error(err);
     showToast("エラーが発生しました");
