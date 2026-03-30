@@ -34,7 +34,7 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Space Grotesk', 'Zen Kaku Gothic New', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--navy-dark);
   color: var(--white);
   min-height: 100vh;

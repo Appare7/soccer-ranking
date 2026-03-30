@@ -465,8 +465,7 @@ async function loadEditRecords(playerId, type) {
     const q = query(
       recordsRef,
       where("playerId", "==", playerId),
-      where("type", "==", type),
-      orderBy("date", "desc")
+      where("type", "==", type)
     );
     const snapshot = await getDocs(q);
 
@@ -475,21 +474,23 @@ async function loadEditRecords(playerId, type) {
       return;
     }
 
-    let html = "";
+    // クライアント側でソート（インデックス不要）
+    const records = [];
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      const dateObj = data.date.toDate();
-      html += `
-        <div class="record-item editable" onclick="openEditRecordModal('${docSnap.id}', ${data.time}, '${dateObj.toISOString()}')">
-          <div>
-            <div class="record-time">${data.time.toFixed(2)}秒</div>
-            <div class="record-date">${formatDateTime(dateObj)}</div>
-          </div>
-          <div style="color: var(--gray); font-size: 14px;">タップして修正 →</div>
-        </div>
-      `;
+      records.push({ id: docSnap.id, ...data, dateObj: data.date.toDate() });
     });
-    listEl.innerHTML = html;
+    records.sort((a, b) => b.dateObj - a.dateObj);
+
+    listEl.innerHTML = records.map((r) => `
+      <div class="record-item editable" onclick="openEditRecordModal('${r.id}', ${r.time}, '${r.dateObj.toISOString()}')">
+        <div>
+          <div class="record-time">${r.time.toFixed(2)}秒</div>
+          <div class="record-date">${formatDateTime(r.dateObj)}</div>
+        </div>
+        <div style="color: var(--gray); font-size: 13px;">修正 →</div>
+      </div>
+    `).join("");
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<div class="empty-message">エラーが発生しました</div>';
