@@ -1,45 +1,34 @@
-// ===== Firebase 設定 =====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+// ===== Google Sheets API =====
+const API_URL = "https://script.google.com/macros/s/AKfycbzf7SWtfdn1IHaxeF_zYy8Ktqc5z-9evmTVGvaMvCJvumECd2thL93_jTfedo32V7nsiw/exec";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBk0uTKS4SKhNCrEWIXoVjlvZxz8o-1iUd0",
-  authDomain: "keio-soccer-ranking.firebaseapp.com",
-  projectId: "keio-soccer-ranking",
-  storageBucket: "keio-soccer-ranking.firebasestorage.app",
-  messagingSenderId: "732530575844",
-  appId: "1:732530575844:web:668dabc5d2a06824989ff1",
-  measurementId: "G-B96VM9VFN0",
-};
+async function apiGet(params) {
+  const url = API_URL + "?" + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+async function apiPost(params, body) {
+  const url = API_URL + "?" + new URLSearchParams(params).toString();
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
 
 // ===== グローバル変数 =====
-let currentRole = null; // "player" or "admin"
+let currentRole = null;
 let currentGradeFilter = "all";
-let currentRankingType = "20m";
-let currentDetailPlayerId = null;
 let currentDetailPlayerName = null;
 let currentDetailType = "20m";
-let currentEditPlayerId = null;
 let currentEditPlayerName = null;
 let currentEditType = "20m";
-let currentEditRecordId = null;
+let currentEditRow = null;
+let currentEditCol = null;
 let playerChart = null;
+let cachedRankingData = { "20m": [], "30m": [] };
+let cachedEditPlayerList = [];
 
 // ===== 画面切り替え =====
 function showScreen(screenId) {
@@ -95,15 +84,10 @@ document.getElementById("logout-btn").addEventListener("click", () => {
 
 // ===== 戻るボタン =====
 window.goBack = function (screenId) {
-  if (screenId === "dashboard") {
-    showScreen("dashboard-screen");
-  } else if (screenId === "ranking") {
-    showScreen("ranking-screen");
-  } else if (screenId === "time-input") {
-    showScreen("time-input-screen");
-  } else if (screenId === "time-edit") {
-    showScreen("time-edit-screen");
-  }
+  if (screenId === "dashboard") showScreen("dashboard-screen");
+  else if (screenId === "ranking") showScreen("ranking-screen");
+  else if (screenId === "time-input") showScreen("time-input-screen");
+  else if (screenId === "time-edit") showScreen("time-edit-screen");
 };
 
 // ===== ランキング表示 =====
@@ -112,30 +96,22 @@ window.showRanking = async function () {
   currentGradeFilter = "all";
   document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
   document.querySelector(".filter-btn").classList.add("active");
+  if (document.getElementById("ranking-search")) document.getElementById("ranking-search").value = "";
   await Promise.all([loadRanking("20m"), loadRanking("30m")]);
 };
 
 // フィルター処理
-async function applyGradeFilter(grade, btnEl) {
+function applyGradeFilter(grade, btnEl) {
   currentGradeFilter = grade;
   document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
   btnEl.classList.add("active");
-  // キャッシュがあればフィルターだけ再適用、なければデータ取得
-  if (cachedRankingData["20m"].length > 0 || cachedRankingData["30m"].length > 0) {
-    const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
-    renderFilteredRanking("20m", searchText);
-    renderFilteredRanking("30m", searchText);
-  } else {
-    await Promise.all([loadRanking("20m"), loadRanking("30m")]);
-  }
+  const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
+  renderFilteredRanking("20m", searchText);
+  renderFilteredRanking("30m", searchText);
 }
 
-// onclick用（後方互換）
-window.filterGrade = function (grade, btnEl) {
-  applyGradeFilter(grade, btnEl);
-};
+window.filterGrade = function (grade, btnEl) { applyGradeFilter(grade, btnEl); };
 
-// data-grade用（addEventListener）
 document.querySelectorAll(".filter-btn[data-grade]").forEach((btn) => {
   btn.addEventListener("click", function () {
     applyGradeFilter(this.dataset.grade, this);
@@ -147,31 +123,19 @@ async function loadRanking(type) {
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
-    const recordsRef = collection(db, "records");
-    const q = query(recordsRef, where("type", "==", type));
-    const snapshot = await getDocs(q);
+    const data = await apiGet({ action: "getRecords", type: type });
+    const records = data.records || [];
 
-    // 選手ごとのベストタイムを計算
-    const bestTimes = {};
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const pid = data.playerId;
-      if (!bestTimes[pid] || data.time < bestTimes[pid].time) {
-        bestTimes[pid] = {
-          playerId: pid,
-          playerName: data.playerName,
-          grade: data.grade || "",
-          time: data.time,
-        };
-      }
-    });
+    const ranked = records
+      .filter((r) => r.bestTime !== null)
+      .sort((a, b) => a.bestTime - b.bestTime);
 
-    // ソートしてキャッシュ
-    let sorted = Object.values(bestTimes);
-    sorted.sort((a, b) => a.time - b.time);
-    cachedRankingData[type] = sorted;
+    cachedRankingData[type] = ranked.map((r) => ({
+      playerName: r.name,
+      grade: r.grade,
+      time: r.bestTime,
+    }));
 
-    // フィルター適用して描画
     const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
     renderFilteredRanking(type, searchText);
   } catch (err) {
@@ -181,8 +145,7 @@ async function loadRanking(type) {
 }
 
 // ===== 選手詳細（グラフ） =====
-window.showPlayerDetail = async function (playerId, playerName) {
-  currentDetailPlayerId = playerId;
+window.showPlayerDetail = async function (_, playerName) {
   currentDetailPlayerName = playerName;
   currentDetailType = "20m";
 
@@ -192,65 +155,45 @@ window.showPlayerDetail = async function (playerId, playerName) {
   document.querySelectorAll("#player-detail-screen .tab").forEach((t) => t.classList.remove("active"));
   document.querySelector("#player-detail-screen .tab").classList.add("active");
 
-  await loadPlayerDetail(playerId, "20m");
+  await loadPlayerDetail(playerName, "20m");
 };
 
 window.switchDetailTab = async function (type, tabEl) {
   currentDetailType = type;
   document.querySelectorAll("#player-detail-screen .tab").forEach((t) => t.classList.remove("active"));
   tabEl.classList.add("active");
-  await loadPlayerDetail(currentDetailPlayerId, type);
+  await loadPlayerDetail(currentDetailPlayerName, type);
 };
 
-async function loadPlayerDetail(playerId, type) {
+async function loadPlayerDetail(playerName, type) {
   const recordsListEl = document.getElementById("player-records-list");
   recordsListEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
-    const recordsRef = collection(db, "records");
-    const q = query(
-      recordsRef,
-      where("playerId", "==", playerId),
-      where("type", "==", type),
-      orderBy("date", "asc")
-    );
-    const snapshot = await getDocs(q);
+    const data = await apiGet({ action: "getPlayerRecords", type: type, name: playerName });
+    const history = data.history || [];
 
-    const records = [];
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      records.push({
-        id: docSnap.id,
-        ...data,
-        dateObj: data.date.toDate(),
-      });
-    });
-
-    if (records.length === 0) {
+    if (history.length === 0) {
       recordsListEl.innerHTML = '<div class="empty-message">この種目の記録はありません</div>';
       renderChart([], []);
       return;
     }
 
-    // グラフ描画
-    const labels = records.map((r) => formatDate(r.dateObj));
-    const data = records.map((r) => r.time);
-    renderChart(labels, data);
+    const labels = history.map((r) => r.date);
+    const times = history.map((r) => r.time);
+    renderChart(labels, times);
 
-    // 記録一覧
-    recordsListEl.innerHTML = records
+    recordsListEl.innerHTML = history
       .slice()
       .reverse()
-      .map(
-        (r) => `
-      <div class="record-item">
-        <div>
-          <div class="record-time">${r.time.toFixed(2)}秒</div>
-          <div class="record-date">${formatDateTime(r.dateObj)}</div>
+      .map((r) => `
+        <div class="record-item">
+          <div>
+            <div class="record-time">${r.time.toFixed(2)}秒</div>
+            <div class="record-date">${r.date}</div>
+          </div>
         </div>
-      </div>
-    `
-      )
+      `)
       .join("");
   } catch (err) {
     console.error(err);
@@ -260,52 +203,36 @@ async function loadPlayerDetail(playerId, type) {
 
 function renderChart(labels, data) {
   const ctx = document.getElementById("player-chart").getContext("2d");
-
-  if (playerChart) {
-    playerChart.destroy();
-  }
+  if (playerChart) playerChart.destroy();
 
   playerChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
-      datasets: [
-        {
-          label: "タイム（秒）",
-          data: data,
-          borderColor: "#f0c430",
-          backgroundColor: "rgba(240, 196, 48, 0.1)",
-          borderWidth: 3,
-          pointBackgroundColor: "#f0c430",
-          pointBorderColor: "#fff",
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          fill: true,
-          tension: 0.3,
-        },
-      ],
+      datasets: [{
+        label: "タイム（秒）",
+        data: data,
+        borderColor: "#f0c430",
+        backgroundColor: "rgba(240, 196, 48, 0.1)",
+        borderWidth: 3,
+        pointBackgroundColor: "#f0c430",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        fill: true,
+        tension: 0.3,
+      }],
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: {
-          labels: { color: "#e2e8f0" },
-        },
-      },
+      plugins: { legend: { labels: { color: "#e2e8f0" } } },
       scales: {
-        x: {
-          ticks: { color: "#9ca3af", maxRotation: 45 },
-          grid: { color: "rgba(255,255,255,0.05)" },
-        },
+        x: { ticks: { color: "#9ca3af", maxRotation: 45 }, grid: { color: "rgba(255,255,255,0.05)" } },
         y: {
           ticks: { color: "#9ca3af" },
           grid: { color: "rgba(255,255,255,0.05)" },
           reverse: true,
-          title: {
-            display: true,
-            text: "タイム（秒）",
-            color: "#9ca3af",
-          },
+          title: { display: true, text: "タイム（秒）", color: "#9ca3af" },
         },
       },
     },
@@ -313,11 +240,10 @@ function renderChart(labels, data) {
 }
 
 // ===== タイム一括入力 =====
-let batchPlayers = []; // [{id, name, grade}]
+let batchPlayers = [];
 
 window.showTimeInput = async function () {
   showScreen("time-input-screen");
-  // Set today's date
   const now = new Date();
   const dateStr = now.toISOString().split("T")[0];
   document.getElementById("batch-date").value = dateStr;
@@ -329,30 +255,24 @@ async function loadBatchInputList() {
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
-    const playersRef = collection(db, "players");
-    const snapshot = await getDocs(query(playersRef, orderBy("name")));
+    const data = await apiGet({ action: "getPlayers" });
+    const players = (data.players || []).sort((a, b) => a.name.localeCompare(b.name, "ja"));
 
-    if (snapshot.empty) {
+    if (players.length === 0) {
       listEl.innerHTML = '<div class="empty-message">選手が登録されていません</div>';
       return;
     }
 
-    batchPlayers = [];
-    let html = "";
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      batchPlayers.push({ id: docSnap.id, name: data.name, grade: data.grade || "" });
-      html += `
-        <div class="batch-row-item">
-          <span class="player-grade">${data.grade || ""}</span>
-          <span class="player-name">${data.name}</span>
-          <input type="number" step="0.01" min="0" placeholder="--"
-                 data-player-id="${docSnap.id}" data-player-name="${data.name}" data-grade="${data.grade || ""}"
-                 oninput="this.classList.toggle('filled', this.value !== '')">
-        </div>
-      `;
-    });
-    listEl.innerHTML = html;
+    batchPlayers = players;
+    listEl.innerHTML = players.map((p) => `
+      <div class="batch-row-item">
+        <span class="player-grade">${p.grade || ""}</span>
+        <span class="player-name">${p.name}</span>
+        <input type="number" step="0.01" min="0" placeholder="--"
+               data-player-name="${p.name}" data-grade="${p.grade || ""}"
+               oninput="this.classList.toggle('filled', this.value !== '')">
+      </div>
+    `).join("");
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<div class="empty-message">エラーが発生しました</div>';
@@ -363,37 +283,24 @@ window.submitBatchTimes = async function () {
   const type = document.getElementById("batch-type").value;
   const dateVal = document.getElementById("batch-date").value;
 
-  if (!dateVal) {
-    showToast("日付を入力してください");
-    return;
-  }
+  if (!dateVal) { showToast("日付を入力してください"); return; }
 
-  const inputs = document.querySelectorAll("#batch-input-list input[data-player-id]");
-  const records = [];
+  const inputs = document.querySelectorAll("#batch-input-list input[data-player-name]");
+  const entries = [];
   inputs.forEach((inp) => {
     const val = parseFloat(inp.value);
     if (!isNaN(val) && val > 0) {
-      records.push({
-        playerId: inp.dataset.playerId,
-        playerName: inp.dataset.playerName,
-        grade: inp.dataset.grade,
-        type: type,
-        time: val,
-        date: Timestamp.fromDate(new Date(dateVal + "T10:00:00")),
-      });
+      entries.push({ name: inp.dataset.playerName, grade: inp.dataset.grade, time: val });
     }
   });
 
-  if (records.length === 0) {
-    showToast("タイムが入力されていません");
-    return;
-  }
+  if (entries.length === 0) { showToast("タイムが入力されていません"); return; }
 
   try {
-    const promises = records.map((r) => addDoc(collection(db, "records"), r));
-    await Promise.all(promises);
-    showToast(`${records.length}件の記録を保存しました！`);
-    // Clear inputs
+    showToast("保存中...");
+    const result = await apiPost({ action: "addRecords" }, { type, date: dateVal, entries });
+    if (result.error) throw new Error(result.error);
+    showToast(`${result.count}件の記録を保存しました！`);
     inputs.forEach((inp) => { inp.value = ""; inp.classList.remove("filled"); });
   } catch (err) {
     console.error(err);
@@ -412,28 +319,24 @@ async function loadPlayerListForEdit() {
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
-    const playersRef = collection(db, "players");
-    const snapshot = await getDocs(query(playersRef, orderBy("name")));
+    const data = await apiGet({ action: "getPlayers" });
+    const players = (data.players || []).sort((a, b) => a.name.localeCompare(b.name, "ja"));
 
-    if (snapshot.empty) {
+    if (players.length === 0) {
       listEl.innerHTML = '<div class="empty-message">選手が登録されていません</div>';
       return;
     }
 
-    let html = "";
-    const players = [];
-    snapshot.forEach((docSnap) => {
-      players.push({ id: docSnap.id, name: docSnap.data().name });
-    });
+    cachedEditPlayerList = players;
     listEl.innerHTML = players.map((p) => `
-      <div class="player-item" data-pid="${p.id}" data-pname="${p.name.replace(/"/g, '&quot;')}">
+      <div class="player-item" data-pname="${p.name.replace(/"/g, '&quot;')}">
         <i class="lucide-user player-icon"></i>
         <span>${p.name}</span>
       </div>
     `).join("");
     listEl.querySelectorAll(".player-item").forEach((el) => {
       el.addEventListener("click", () => {
-        openTimeEditDetail(el.dataset.pid, el.dataset.pname);
+        window.openTimeEditDetail(el.dataset.pname);
       });
     });
   } catch (err) {
@@ -442,8 +345,7 @@ async function loadPlayerListForEdit() {
   }
 }
 
-window.openTimeEditDetail = async function (playerId, playerName) {
-  currentEditPlayerId = playerId;
+window.openTimeEditDetail = async function (playerName) {
   currentEditPlayerName = playerName;
   currentEditType = "20m";
   document.getElementById("time-edit-player-name").textContent = playerName;
@@ -452,67 +354,52 @@ window.openTimeEditDetail = async function (playerId, playerName) {
   document.querySelectorAll("#time-edit-detail-screen .tab").forEach((t) => t.classList.remove("active"));
   document.querySelector("#time-edit-detail-screen .tab").classList.add("active");
 
-  await loadEditRecords(playerId, "20m");
+  await loadEditRecords(playerName, "20m");
 };
 
 window.switchEditTab = async function (type, tabEl) {
   currentEditType = type;
   document.querySelectorAll("#time-edit-detail-screen .tab").forEach((t) => t.classList.remove("active"));
   tabEl.classList.add("active");
-  await loadEditRecords(currentEditPlayerId, type);
+  await loadEditRecords(currentEditPlayerName, type);
 };
 
-async function loadEditRecords(playerId, type) {
+async function loadEditRecords(playerName, type) {
   const listEl = document.getElementById("edit-records-list");
   listEl.innerHTML = '<div class="empty-message">読み込み中...</div>';
 
   try {
-    const recordsRef = collection(db, "records");
-    const q = query(
-      recordsRef,
-      where("playerId", "==", playerId),
-      where("type", "==", type)
-    );
-    const snapshot = await getDocs(q);
+    const data = await apiGet({ action: "getPlayerRecords", type: type, name: playerName });
+    const history = data.history || [];
 
-    if (snapshot.empty) {
+    if (history.length === 0) {
       listEl.innerHTML = '<div class="empty-message">この種目の記録はありません</div>';
       return;
     }
 
-    // クライアント側でソート（インデックス不要）
-    const records = [];
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      records.push({ id: docSnap.id, ...data, dateObj: data.date.toDate() });
-    });
-    records.sort((a, b) => b.dateObj - a.dateObj);
-
-    listEl.innerHTML = records.map((r) => `
-      <div class="record-item editable" onclick="openEditRecordModal('${r.id}', ${r.time}, '${r.dateObj.toISOString()}')">
+    listEl.innerHTML = history.slice().reverse().map((r) => `
+      <div class="record-item editable" data-row="${data.row}" data-col="${r.col}" data-time="${r.time}" data-date="${r.date}">
         <div>
           <div class="record-time">${r.time.toFixed(2)}秒</div>
-          <div class="record-date">${formatDateTime(r.dateObj)}</div>
+          <div class="record-date">${r.date}</div>
         </div>
         <div style="color: var(--gray); font-size: 13px;">修正 →</div>
       </div>
     `).join("");
+
+    listEl.querySelectorAll(".record-item.editable").forEach((el) => {
+      el.addEventListener("click", () => {
+        currentEditRow = parseInt(el.dataset.row);
+        currentEditCol = parseInt(el.dataset.col);
+        document.getElementById("edit-time").value = el.dataset.time;
+        document.getElementById("edit-record-modal").classList.add("active");
+      });
+    });
   } catch (err) {
     console.error(err);
     listEl.innerHTML = '<div class="empty-message">エラーが発生しました</div>';
   }
 }
-
-window.openEditRecordModal = function (recordId, time, dateISO) {
-  currentEditRecordId = recordId;
-  document.getElementById("edit-time").value = time;
-
-  const d = new Date(dateISO);
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  document.getElementById("edit-date").value = local.toISOString().slice(0, 16);
-
-  document.getElementById("edit-record-modal").classList.add("active");
-};
 
 window.closeEditModal = function () {
   document.getElementById("edit-record-modal").classList.remove("active");
@@ -520,23 +407,19 @@ window.closeEditModal = function () {
 
 window.updateRecord = async function () {
   const newTime = parseFloat(document.getElementById("edit-time").value);
-  const newDate = document.getElementById("edit-date").value;
-
-  if (isNaN(newTime) || newTime <= 0) {
-    showToast("正しいタイムを入力してください");
-    return;
-  }
+  if (isNaN(newTime) || newTime <= 0) { showToast("正しいタイムを入力してください"); return; }
 
   try {
-    const recordRef = doc(db, "records", currentEditRecordId);
-    await updateDoc(recordRef, {
-      time: newTime,
-      date: Timestamp.fromDate(new Date(newDate)),
+    showToast("保存中...");
+    await apiPost({ action: "updateRecord" }, {
+      type: currentEditType,
+      row: currentEditRow,
+      col: currentEditCol,
+      newTime: newTime,
     });
-
     closeEditModal();
     showToast("記録を修正しました！");
-    await loadEditRecords(currentEditPlayerId, currentEditType);
+    await loadEditRecords(currentEditPlayerName, currentEditType);
   } catch (err) {
     console.error(err);
     showToast("エラーが発生しました");
@@ -544,13 +427,17 @@ window.updateRecord = async function () {
 };
 
 window.deleteRecord = async function () {
-  if (!confirm("この記録を削除しますか？この操作は取り消せません。")) return;
+  if (!confirm("この記録を削除しますか？")) return;
 
   try {
-    await deleteDoc(doc(db, "records", currentEditRecordId));
+    await apiPost({ action: "deleteRecord" }, {
+      type: currentEditType,
+      row: currentEditRow,
+      col: currentEditCol,
+    });
     closeEditModal();
     showToast("記録を削除しました");
-    await loadEditRecords(currentEditPlayerId, currentEditType);
+    await loadEditRecords(currentEditPlayerName, currentEditType);
   } catch (err) {
     console.error(err);
     showToast("エラーが発生しました");
@@ -569,13 +456,11 @@ window.closeModal = function () {
 
 window.addPlayer = async function () {
   const name = document.getElementById("new-player-name").value.trim();
-  if (!name) {
-    showToast("名前を入力してください");
-    return;
-  }
+  if (!name) { showToast("名前を入力してください"); return; }
 
   try {
-    await addDoc(collection(db, "players"), { name: name });
+    showToast("追加中...");
+    await apiPost({ action: "addPlayer" }, { name: name, grade: "" });
     closeModal();
     showToast(`${name} を追加しました！`);
     await loadBatchInputList();
@@ -598,7 +483,6 @@ const NAME_READINGS = {
   "佐久間":"さくま","有村":"ありむら","藤城":"ふじしろ","木山":"きやま","川島":"かわしま"
 };
 
-// ローマ字→ひらがな変換
 function romajiToHiragana(str) {
   const map = {
     sha:"しゃ",shi:"し",shu:"しゅ",sho:"しょ",chi:"ち",tsu:"つ",
@@ -631,21 +515,12 @@ function romajiToHiragana(str) {
   let s = str.toLowerCase();
   let idx = 0;
   while (idx < s.length) {
-    // try 3-char, 2-char, 1-char
     let matched = false;
     for (let len = 3; len >= 1; len--) {
       const chunk = s.substring(idx, idx + len);
-      if (map[chunk]) {
-        result += map[chunk];
-        idx += len;
-        matched = true;
-        break;
-      }
+      if (map[chunk]) { result += map[chunk]; idx += len; matched = true; break; }
     }
-    if (!matched) {
-      result += s[idx];
-      idx++;
-    }
+    if (!matched) { result += s[idx]; idx++; }
   }
   return result;
 }
@@ -653,20 +528,14 @@ function romajiToHiragana(str) {
 function matchesSearch(name, searchText) {
   if (!searchText) return true;
   const lower = searchText.toLowerCase();
-  // 漢字・カタカナそのまま
   if (name.includes(searchText)) return true;
-  // ひらがな読み
   const reading = NAME_READINGS[name] || "";
   if (reading.includes(lower)) return true;
   if (reading.includes(searchText)) return true;
-  // ローマ字→ひらがな変換して照合
   const hiragana = romajiToHiragana(lower);
   if (reading.includes(hiragana)) return true;
   return false;
 }
-
-// ランキング検索フィルタ
-let cachedRankingData = { "20m": [], "30m": [] };
 
 window.filterRanking = function () {
   const searchText = document.getElementById("ranking-search").value.trim();
@@ -677,9 +546,9 @@ window.filterRanking = function () {
 function nameSize(name) {
   const len = name.length;
   if (len <= 2) return "";
-  if (len === 3) return "style=\"font-size:0.9em\"";
-  if (len === 4) return "style=\"font-size:0.78em\"";
-  return "style=\"font-size:0.68em\"";
+  if (len === 3) return 'style="font-size:0.9em"';
+  if (len === 4) return 'style="font-size:0.78em"';
+  return 'style="font-size:0.68em"';
 }
 
 function renderFilteredRanking(type, searchText) {
@@ -693,7 +562,7 @@ function renderFilteredRanking(type, searchText) {
     return;
   }
   listEl.innerHTML = filtered.map((item, i) => `
-    <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('${item.playerId}', '${item.playerName}')">
+    <div class="ranking-item rank-${i + 1}" onclick="showPlayerDetail('', '${item.playerName.replace(/'/g, "\\'")}')">
       <div class="rank-number">${i + 1}</div>
       <div class="rank-info"><div class="rank-name" ${nameSize(item.playerName)}>${item.playerName}</div></div>
       <div class="rank-time">${item.time.toFixed(2)}s</div>
@@ -713,25 +582,12 @@ window.filterBatchInput = function () {
 window.filterEditList = function () {
   const searchText = document.getElementById("edit-search").value.trim();
   document.querySelectorAll("#player-list-edit .player-item").forEach((row) => {
-    const name = row.querySelector("span:last-child").textContent;
+    const name = row.querySelector("span").textContent;
     row.style.display = matchesSearch(name, searchText) ? "" : "none";
   });
 };
 
 // ===== ユーティリティ =====
-function formatDate(date) {
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
-function formatDateTime(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  const h = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `${y}/${m}/${d} ${h}:${min}`;
-}
-
 function showToast(message) {
   const toast = document.getElementById("toast");
   toast.textContent = message;

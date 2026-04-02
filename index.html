@@ -216,10 +216,6 @@
         <label>タイム（秒）</label>
         <input type="number" id="edit-time" step="0.01" min="0">
       </div>
-      <div class="form-group">
-        <label>日時</label>
-        <input type="datetime-local" id="edit-date">
-      </div>
       <div class="modal-buttons">
         <button class="btn btn-outline" onclick="closeEditModal()">キャンセル</button>
         <button class="btn btn-danger" onclick="deleteRecord()">削除</button>
@@ -231,6 +227,6 @@
   <!-- Toast通知 -->
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
