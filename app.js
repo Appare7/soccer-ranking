@@ -612,7 +612,6 @@ window.showPasswordScreen = async function () {
   try {
     const data = await apiGet({ action: "getPasswords" });
     document.getElementById("player-password").value = data.player_password || "";
-    document.getElementById("admin-password").value = data.admin_password || "";
     document.getElementById("password-status").textContent = "";
   } catch (err) {
     document.getElementById("password-status").textContent = "読み込みエラー";
