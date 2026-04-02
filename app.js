@@ -1,5 +1,5 @@
 // ===== Google Sheets API =====
-const API_URL = "https://script.google.com/macros/s/AKfycbzf7SWtfdn1IHaxeF_zYy8Ktqc5z-9evmTVGvaMvCJvumECd2thL93_jTfedo32V7nsiw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwOI0j713ork91SWh5Q_CBG4P3iblclQUq0xV-jfDXTgIR9CJ9-ZJ8VBmSI8fF5pIpA/exec";
 
 async function apiGet(params) {
   const url = API_URL + "?" + new URLSearchParams(params).toString();
