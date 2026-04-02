@@ -43,22 +43,39 @@ document.getElementById("password-input").addEventListener("keypress", (e) => {
   if (e.key === "Enter") handleLogin();
 });
 
-function handleLogin() {
+async function handleLogin() {
   const password = document.getElementById("password-input").value;
   const errorEl = document.getElementById("login-error");
+  const btn = document.getElementById("login-btn");
 
-  if (password === "Tensei") {
-    currentRole = "player";
-    errorEl.textContent = "";
-    setupDashboard();
-  } else if (password === "Appare") {
-    currentRole = "admin";
-    errorEl.textContent = "";
-    setupDashboard();
-  } else {
-    errorEl.textContent = "パスワードが正しくありません";
-    document.getElementById("password-input").value = "";
+  if (!password) { errorEl.textContent = "パスワードを入力してください"; return; }
+
+  btn.textContent = "...";
+  btn.disabled = true;
+
+  try {
+    const data = await apiGet({ action: "getPasswords" });
+    const playerPw = data.player_password || "Tensei";
+    const adminPw = data.admin_password || "Appare";
+
+    if (password === playerPw) {
+      currentRole = "player";
+      errorEl.textContent = "";
+      setupDashboard();
+    } else if (password === adminPw) {
+      currentRole = "admin";
+      errorEl.textContent = "";
+      setupDashboard();
+    } else {
+      errorEl.textContent = "パスワードが正しくありません";
+      document.getElementById("password-input").value = "";
+    }
+  } catch (err) {
+    errorEl.textContent = "接続エラー。もう一度お試しください";
   }
+
+  btn.textContent = "Log in";
+  btn.disabled = false;
 }
 
 function setupDashboard() {
@@ -88,6 +105,7 @@ window.goBack = function (screenId) {
   else if (screenId === "ranking") showScreen("ranking-screen");
   else if (screenId === "time-input") showScreen("time-input-screen");
   else if (screenId === "time-edit") showScreen("time-edit-screen");
+  else if (screenId === "password") showScreen("password-screen");
 };
 
 // ===== ランキング表示 =====
@@ -585,6 +603,38 @@ window.filterEditList = function () {
     const name = row.querySelector("span").textContent;
     row.style.display = matchesSearch(name, searchText) ? "" : "none";
   });
+};
+
+// ===== パスワード管理 =====
+window.showPasswordScreen = async function () {
+  showScreen("password-screen");
+  document.getElementById("password-status").textContent = "読み込み中...";
+  try {
+    const data = await apiGet({ action: "getPasswords" });
+    document.getElementById("player-password").value = data.player_password || "";
+    document.getElementById("admin-password").value = data.admin_password || "";
+    document.getElementById("password-status").textContent = "";
+  } catch (err) {
+    document.getElementById("password-status").textContent = "読み込みエラー";
+  }
+};
+
+window.savePlayerPassword = async function () {
+  const newPw = document.getElementById("player-password").value.trim();
+  if (!newPw) { showToast("パスワードを入力してください"); return; }
+  try {
+    await apiPost({ action: "setPassword" }, { key: "player_password", value: newPw });
+    showToast("選手用パスワードを変更しました！");
+  } catch (err) { showToast("エラーが発生しました"); }
+};
+
+window.saveAdminPassword = async function () {
+  const newPw = document.getElementById("admin-password").value.trim();
+  if (!newPw) { showToast("パスワードを入力してください"); return; }
+  try {
+    await apiPost({ action: "setPassword" }, { key: "admin_password", value: newPw });
+    showToast("管理者パスワードを変更しました！");
+  } catch (err) { showToast("エラーが発生しました"); }
 };
 
 // ===== ユーティリティ =====

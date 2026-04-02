@@ -970,6 +970,26 @@ header {
   background: var(--gray);
 }
 
+/* ===== パスワード管理 ===== */
+.password-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.password-row input {
+  flex: 1;
+}
+.password-row .btn {
+  flex-shrink: 0;
+}
+.password-status {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--yellow);
+  text-align: center;
+  min-height: 20px;
+}
+
 /* ===== レスポンシブ ===== */
 @media (max-width: 600px) {
   .menu-grid {

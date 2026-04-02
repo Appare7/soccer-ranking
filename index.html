@@ -60,6 +60,11 @@
           <div class="menu-label">Edit</div>
           <div class="menu-desc">過去の記録を編集・削除</div>
         </button>
+        <button id="menu-password" class="menu-card admin-only" onclick="showPasswordScreen()">
+          <div class="menu-icon"><i class="lucide-key-round"></i></div>
+          <div class="menu-label">Password</div>
+          <div class="menu-desc">パスワードを変更</div>
+        </button>
       </div>
     </main>
   </div>
@@ -190,6 +195,36 @@
         <button class="tab" onclick="switchEditTab('30m', this)">30m走</button>
       </div>
       <div id="edit-records-list" class="records-list"></div>
+    </main>
+  </div>
+
+  <!-- パスワード管理画面 -->
+  <div id="password-screen" class="screen">
+    <header>
+      <div class="header-content">
+        <button class="btn btn-back" onclick="goBack('dashboard')"><i class="lucide-arrow-left"></i> 戻る</button>
+        <h1>PASSWORD</h1>
+        <div></div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="form-card">
+        <div class="form-group">
+          <label>選手用パスワード</label>
+          <div class="password-row">
+            <input type="text" id="player-password" placeholder="読み込み中...">
+            <button class="btn btn-primary" onclick="savePlayerPassword()">保存</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>管理者パスワード</label>
+          <div class="password-row">
+            <input type="text" id="admin-password" placeholder="読み込み中...">
+            <button class="btn btn-primary" onclick="saveAdminPassword()">保存</button>
+          </div>
+        </div>
+        <p id="password-status" class="password-status"></p>
+      </div>
     </main>
   </div>
 
