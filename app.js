@@ -622,8 +622,10 @@ window.savePlayerPassword = async function () {
   const newPw = document.getElementById("player-password").value.trim();
   if (!newPw) { showToast("パスワードを入力してください"); return; }
   try {
+    showToast("保存中...");
     await apiPost({ action: "setPassword" }, { key: "player_password", value: newPw });
-    showToast("選手用パスワードを変更しました！");
+    showToast("パスワードを「" + newPw + "」に変更しました！");
+    showScreen("dashboard-screen");
   } catch (err) { showToast("エラーが発生しました"); }
 };
 
