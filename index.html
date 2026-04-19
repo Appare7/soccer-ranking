@@ -88,14 +88,10 @@
         <button class="filter-btn" data-grade="3年">3年</button>
         <button class="filter-btn" data-grade="2年">2年</button>
       </div>
-      <div class="ranking-dual">
+      <div class="ranking-single">
         <div class="ranking-column">
           <div class="ranking-column-header">20m走</div>
           <div id="ranking-list-20m" class="ranking-list"></div>
-        </div>
-        <div class="ranking-column">
-          <div class="ranking-column-header">30m走</div>
-          <div id="ranking-list-30m" class="ranking-list"></div>
         </div>
       </div>
     </main>
@@ -111,10 +107,6 @@
       </div>
     </header>
     <main class="container">
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchDetailTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchDetailTab('30m', this)">30m走</button>
-      </div>
       <div class="chart-container">
         <canvas id="player-chart"></canvas>
       </div>
@@ -138,14 +130,8 @@
       </div>
       <div class="batch-controls">
         <div class="batch-row">
-          <div class="form-group compact">
-            <label>種目</label>
-            <select id="batch-type">
-              <option value="20m">20m走</option>
-              <option value="30m">30m走</option>
-            </select>
-          </div>
-          <div class="form-group compact">
+          <input type="hidden" id="batch-type" value="20m">
+          <div class="form-group compact" style="flex:1">
             <label>日付</label>
             <input type="date" id="batch-date">
           </div>
@@ -190,10 +176,6 @@
       </div>
     </header>
     <main class="container">
-      <div class="tab-bar">
-        <button class="tab active" onclick="switchEditTab('20m', this)">20m走</button>
-        <button class="tab" onclick="switchEditTab('30m', this)">30m走</button>
-      </div>
       <div id="edit-records-list" class="records-list"></div>
     </main>
   </div>

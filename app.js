@@ -27,7 +27,7 @@ let currentEditType = "20m";
 let currentEditRow = null;
 let currentEditCol = null;
 let playerChart = null;
-let cachedRankingData = { "20m": [], "30m": [] };
+let cachedRankingData = { "20m": [] };
 let cachedEditPlayerList = [];
 
 // ===== 画面切り替え =====
@@ -115,7 +115,7 @@ window.showRanking = async function () {
   document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
   document.querySelector(".filter-btn").classList.add("active");
   if (document.getElementById("ranking-search")) document.getElementById("ranking-search").value = "";
-  await Promise.all([loadRanking("20m"), loadRanking("30m")]);
+  await loadRanking("20m");
 };
 
 // フィルター処理
@@ -125,7 +125,6 @@ function applyGradeFilter(grade, btnEl) {
   btnEl.classList.add("active");
   const searchText = document.getElementById("ranking-search") ? document.getElementById("ranking-search").value.trim() : "";
   renderFilteredRanking("20m", searchText);
-  renderFilteredRanking("30m", searchText);
 }
 
 window.filterGrade = function (grade, btnEl) { applyGradeFilter(grade, btnEl); };
@@ -169,9 +168,6 @@ window.showPlayerDetail = async function (_, playerName) {
 
   document.getElementById("player-detail-name").textContent = playerName;
   showScreen("player-detail-screen");
-
-  document.querySelectorAll("#player-detail-screen .tab").forEach((t) => t.classList.remove("active"));
-  document.querySelector("#player-detail-screen .tab").classList.add("active");
 
   await loadPlayerDetail(playerName, "20m");
 };
@@ -369,9 +365,6 @@ window.openTimeEditDetail = async function (playerName) {
   document.getElementById("time-edit-player-name").textContent = playerName;
   showScreen("time-edit-detail-screen");
 
-  document.querySelectorAll("#time-edit-detail-screen .tab").forEach((t) => t.classList.remove("active"));
-  document.querySelector("#time-edit-detail-screen .tab").classList.add("active");
-
   await loadEditRecords(playerName, "20m");
 };
 
@@ -558,7 +551,6 @@ function matchesSearch(name, searchText) {
 window.filterRanking = function () {
   const searchText = document.getElementById("ranking-search").value.trim();
   renderFilteredRanking("20m", searchText);
-  renderFilteredRanking("30m", searchText);
 };
 
 function nameSize(name) {
